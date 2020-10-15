@@ -9,7 +9,7 @@
 
   - name: C) Check hostname
     debug:
-    var: ansible_facts['hostname'] 
+    var: ansible_facts['ansible_hostname'] 
 
   - name: D) Add /etc/hosts markers
     lineinfile:
