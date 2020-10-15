@@ -1,0 +1,39 @@
+---
+- name: test blockinfile
+  hosts: ansible1
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Insert Splunk block just before </watchers>
+      blockinfile:
+        path: /opt/nimsoft/probes/system/processes/processes.cfg
+        insertbefore: '</watchers>'
+        block: |2
+            <Splunk>
+               qos_process_state = no
+               scan_proc_cmd_line = yes
+               active = yes
+               proc_cmd_line = splunkd -p 8089 start
+               description = 
+               qos_process_cpu = yes
+               qos_process_memory = yes
+               report = down
+            </Splunk>
+    - name: Clean up ANSIBLE comments
+      lineinfile:
+        dest: /opt/nimsoft/probes/system/processes/processes.cfg
+        line: "# BEGIN ANSIBLE MANAGED BLOCK"
+        state: absent
+    - name: Clean up ANSIBLE comments
+      lineinfile: 
+        dest: /opt/nimsoft/probes/system/processes/processes.cfg
+        line: "# END ANSIBLE MANAGED BLOCK"
+        state: absent
+    - name: Restart Nimbus
+      command: service nimbus restart 
+    - name: Check for Nimbus processes
+      command: ps aux | grep nimbus | grep -v grep | wc -l
+      register: nim_procs
+    - name: Report number of Nimbus processes
+      debug:
+        msg: "{{ nim_procs }}"

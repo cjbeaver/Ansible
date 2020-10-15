@@ -1,0 +1,23 @@
+---
+- name: Check the status of Sophos AV
+  hosts: all
+  gather_facts: no
+  #ignore_errors: yes
+  vars:
+    string: /opt/armor/armor
+  become: True
+  tasks:
+    - name: Check SAV status
+      command: /opt/sophos-av/bin/savdstatus 
+      register: result
+    - name: print status of SAV
+      debug:
+        msg: Sophos AV is up and running
+      when: result.rc == 0
+    - name: check Armor status
+      command: ps aux | grep armor
+      register: result
+    - name: print status of Armor
+      debug:
+        msg: Armor is installed and running
+      when: register.rc == 1

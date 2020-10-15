@@ -1,0 +1,12 @@
+---
+- name: test blockinfile
+  hosts: all
+  become: true
+  ignore_errors: true
+  gather_facts: false
+  tasks:
+    - name: Lock user account for eguloiu
+      user:
+        name: eguloiu
+        password_lock: true
+        comment: Locked Ticket 200929-04371

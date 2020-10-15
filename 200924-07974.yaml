@@ -1,0 +1,21 @@
+---
+- hosts: all
+  gather_facts: no
+  become: true
+  
+  tasks:
+    - name: add line for sv1sec06
+      lineinfile:
+        backup: yes
+        dest: /etc/hosts
+        regexp: '^172\.24\.20\.63\s+931727-rsiad3v-pvh-sv1sec06.*$'
+        line: '172.24.20.63     931727-rsiad3v-pvh-sv1sec06    931727-rsiad3v-pvh-sv1sec06.pvh.com'
+        state: present
+
+    - name: add linefor sv1sec07
+      lineinfile:
+        backup: yes
+        dest: /etc/hosts
+        regexp: '^172\.24\.20\.62\s+931726-rsiad3v-pvh-sv1sec07.*$'
+        line: '172.24.20.62     931726-rsiad3v-pvh-sv1sec07    931726-rsiad3v-pvh-sv1sec07.pvh.com'
+        state: present

@@ -1,0 +1,1 @@
+TARGETS='<device> <device> …' ansible-playbook -i $(which ht) playbook_name.yml

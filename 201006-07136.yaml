@@ -1,0 +1,36 @@
+---
+- name: Mount New NFS Shares
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Create backup dir
+      file:
+        path: /home/rack/201006-07136
+        state: directory
+        owner: rack
+        group: rack
+    - name: Back up '/etc/fstab'
+      copy:
+        remote_src: yes
+        src: /etc/fstab
+        dest: /home/rack/201006-07136/
+    - name: Create new mount dir
+      file:
+        path: /EETST11_export
+        state: directory
+        owner: oracle
+        group: dba
+        recurse: yes
+        mode: '1775'
+    - name: Add NFS mount entry into '/etc/fstab'
+      lineinfile:
+        path: /etc/fstab
+        state: present
+        line: '172.25.68.91:/EETST11_export /EETST11_export nfs4 rw,relatime,vers=4.1,rsize=262144,wsize=262144,namlen=255,hard,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=172.25.68.82,local_lock=none,addr=172.25.68.91 0 0'
+    - name: Mount new NFS mount
+      mount:
+        path: /EETST11_export
+        src: 172.25.68.91:/EETST11_export
+        fstype: nfs4
+        state: present

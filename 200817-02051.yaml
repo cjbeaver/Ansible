@@ -1,0 +1,10 @@
+---
+- name: Check for besclient
+  hosts: all
+  become: true
+  tasks:
+  - name: check for besclient
+    command: rpm -q besclient
+    register: result
+  - debug:
+      var: "result"   
