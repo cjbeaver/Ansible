@@ -1,0 +1,11 @@
+---
+- name: Execute some tasks for requests in 201008-04182
+  become: true
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: upload .ZIP file
+      copy: 
+        src: MARSHALLS-QA3-B.zip
+        dest: /export
+    

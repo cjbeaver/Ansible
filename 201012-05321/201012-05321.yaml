@@ -1,0 +1,127 @@
+---
+- name:  Post Online Linux Checks - Tjmaxx Production
+  hosts: all
+  become: true
+  tasks:
+  - name: A) Set timezone to America/New York
+    timezone:
+      name: America/New_York
+
+  - name: C) Check hostname
+    command: hostname
+    register: hostname_val
+
+  - name: C) Report hostname
+    debug:
+      var: "hostname_val"
+
+  - name: D) Add /etc/hosts markers
+    lineinfile:
+      path: /etc/hosts
+      line: "{{ item }}"
+      state: present
+    with_items:
+      - '#App'
+      - '#PDP DMS Info'
+      - '#NFS'
+
+  - name: D) Verify / Add App entries in /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      insertafter: '#App'
+      backup: true
+      line: "{{ item }}"
+      state: present
+    with_items:
+      - '192.168.102.4 1146515-app1.prd.tjmaxx.com 1146515-app1'
+      - '192.168.102.5 1146565-app2.prd.tjmaxx.com 1146565-app2'
+      - '192.168.102.6 1146579-app3.prd.tjmaxx.com 1146579-app3'
+      - '192.168.102.7 1146587-app4.prd.tjmaxx.com 1146587-app4'
+      - '192.168.102.15 1149178-app5.prd.tjmaxx.com 1149178-app5'
+      - '192.168.102.16 1149179-app6.prd.tjmaxx.com 1149179-app6'
+      - '192.168.102.8 1146750-Aux1.prd.tjmaxx.com 1146750-Aux1'
+      - '192.168.102.9 1146755-Aux2.prd.tjmaxx.com 1146755-Aux2'
+      - '192.168.102.10 1146758-bcc.prd.tjmaxx.com 1146758-bcc'
+      - '192.168.102.11 1146761-srch2live.prd.tjmaxx.com 1146761-srch2live'
+      - '192.168.102.12 1146766-srch3mdx1.prd.tjmaxx.com 1146766-srch3mdx1'
+      - '192.168.102.13 1146768-srch4mdx2.prd.tjmaxx.com 1146768-srch4mdx2'
+      - '192.168.102.14 1146770-indexing.prd.tjmaxx.com 1146770-indexing'
+      
+  - name: D) Verify / Add PDP DMS Info entries in /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      insertafter: '#PDP DMS Info'
+      line: "{{ item }}"
+      state: present
+    with_items:
+      - '172.27.16.14    994852-pdpdsm1.ecomm.tjxdigital.com         994852-pdpdsm1' 
+      - '172.27.16.15    994853-pdpdsm2.ecomm.tjxdigital.com         994853-pdpdsm2' 
+      - '172.28.16.194   994854-pdpdsm3.ecomm.tjxdigital.com         994854-pdpdsm3' 
+      - '172.28.16.195   994855-pdpdsm4.ecomm.tjxdigital.com         994855-pdpdsm4'
+
+  - name: D) Verify / Add PDP NFS Info entries in /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      insertafter: '#NFS'
+      line: "{{ item }}"
+      state: present
+    with_items:
+      - '192.168.103.30 994822-prod-nfs1-ord1.tjmaxx.com 994822-prod-nfs1-ord1' 
+      - '192.168.103.35 1023068-prod-nfs2-ord1.tjmaxx.com 1023068-prod-nfs2-ord1'
+
+  - name: E) DNS name server settings -- add entries for 192.168.109.31, 192.168.109.4
+    lineinfile:
+      path: /etc/resolv.conf
+      line: "{{ item }}"
+      backup: true
+    with_items:
+      - 'nameserver 192.168.109.31'    
+      - 'nameserver 192.168.109.4'    
+  
+  #- name: F) Check IP6 has been removed
+  #  command: ifconfig | grep inet6
+  #  register: ip6_out
+
+  #- name: F) IP6 Output
+  #  debug:
+  #    var: "ip6_out"
+
+  - name: G) Create persistent NFS mount - Install nfs-utils
+    yum:
+      name: nfs-utils
+      state: latest
+
+  - name: G) Create persistent NFS mount - create mount points
+    file:
+      path: "{{ item }}"
+      state: directory
+    with_items:
+      - /shared
+      - /mnt/nfs-logs
+
+  - name: G) Create persistent NFS mount - /shared
+    mount:
+      path: /shared
+      src: 192.168.103.30:/san/nfs-fs/exports/shared
+      fstype: nfs4
+      state: mounted
+      opts:   retry=600,_netdev,vers=4,proto=tcp,hard,sec=sys,timeo=150,retrans=600,relatime
+  
+  - name: G) Create persistent NFS mount - /mnt/nfs-logs
+    mount:
+      path: /mnt/nfs-logs
+      src: 192.168.103.35:/san/nfs-log-fs/logs
+      fstype: nfs4
+      state: mounted
+      opts: retry=600,hard,noatime,_netdev       
+
+  - name: H) Change SMTP Postfix Config
+    copy:
+      src: main.cf
+      dest: /etc/postfix/main.cf
+      backup: true
+
+  - name: H) Change SMTP Postfix Config - restart postfix
+    service:
+      name: postfix
+      state: restarted

@@ -1,0 +1,6 @@
+---
+- name: check ansible manageability
+  hosts: all
+  tasks:
+  - name: ping
+    ping

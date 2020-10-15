@@ -1,0 +1,12 @@
+---
+- name: check sophos version
+  hosts: all
+  become: true
+  gather_facts: no 
+  tasks: 
+    - name: check sophos version
+      command: /opt/sophos-av/bin/savdstatus --version | head -2
+      register: sophos_output
+    - name: print sophos version
+      debug:
+        msg: "{{ sophos_output }}"

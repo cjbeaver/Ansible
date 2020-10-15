@@ -1,0 +1,46 @@
+---
+- hosts: linux:!unsupported*
+  gather_facts: no
+  become: yes
+
+  vars:
+    rackspace_ticket: "200819-01744"
+    users:
+      - { username: "ndhasan", comment: "Nishanth Dhasan" }
+ #     - { username: "lsantos", comment: "Lanie Santos" }
+ #     - { username: "oayata", comment: "Ozkan Ayata" }
+ #     - { username: "atang", comment: "Anthony Tang" }
+ #     - { username: "vyogeshappa", comment: "Veda Yogeshappa" }
+
+  tasks:
+    - name: Add users, with passwords
+      user:
+        name: "{{ item.username }}"
+        password: "{{lookup('password', 'tmp/%s chars=ascii_letters,digits encrypt=md5_crypt' %(item.username))}}"
+        comment: "{{ item.comment }}"
+        groups: [ 'med_support' ]
+        update_password: on_create
+      with_items: '{{ users }}'
+      tags: [ create_users ]
+
+    - name: expire the password
+      command: "chage  --lastday  0  {{ item.username }}"
+      with_items: '{{ users }}'
+      tags: [ expire_accounts ]
+
+    - name: create credentials files
+      become: no
+      copy:
+        content: |
+          Rackspace Ticket: {{ rackspace_ticket }}
+          Rackspace Devices: {{ ansible_play_hosts_all }}
+          Username: {{ item.username }}
+          Temporary Password: {{lookup('password', 'tmp/%s' %(item.username))}}
+
+          Password must be reset upon first login to any machine.
+
+        dest: "tmp/{{ rackspace_ticket }} credentials for {{ item.username }}.txt"
+      delegate_to: localhost
+      run_once: yes
+      tags: [ make_cred_files ]
+      with_items: '{{ users }}'

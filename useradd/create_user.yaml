@@ -1,0 +1,13 @@
+---
+- name: create a user with vaulted variables
+  hosts: all
+  become: true
+  vars_files:
+    - secrets.yaml
+  tasks:
+  - name: creating user
+    user:
+      name: "{{ username }}"
+      password: "{{ my_password | password_hash('sha512') }}"
+      ## To make the playbook idempotent, set update_password: on_create. This will only set the password for newly created users.
+      #      update_password: on_create

@@ -1,0 +1,7 @@
+---
+- name: Timezone Change
+  hosts: all
+  tasks: 
+  - name: Change timezone to EST
+    timezone:
+      name: Europe/Warsaw
