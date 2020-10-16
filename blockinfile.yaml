@@ -30,7 +30,9 @@
         line: "# END ANSIBLE MANAGED BLOCK"
         state: absent
     - name: Restart Nimbus
-      command: service nimbus restart 
+      service:
+        name: nimbus
+        state: restarted
     - name: Check for Nimbus processes
       command: ps aux | grep nimbus | grep -v grep | wc -l
       register: nim_procs
