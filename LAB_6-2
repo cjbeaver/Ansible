@@ -1,0 +1,67 @@
+#LAB 6-2
+#
+#After copying over the facts files, create a playbook that uses the facts to set up the rest of the environment. Make sure it meets the following requirements:
+#
+#• Use a variable inclusion file with the name allvars.yaml and set the following variables:
+#
+#web_root = /var/www/html
+#ftp_root = /var/ftp
+
+#• Create a playbook that sets up the file services and the web services. Also ensure the playbook opens the firewalld firewall to provide access to these servers.
+#
+#• Make sure the webservice provides access to a file index.html, which contains the text “Welcome to the Ansible Web Server.”
+#
+#• Run the playbook and use ad hoc commands to verify that the services have been started.
+
+
+
+---
+- name: set up nodes with custom_facts
+  hosts: all
+  vars_files: 
+    - vars/allvars.yaml
+  tasks:
+  - name: Install web and file packages
+    yum:
+      state: installed
+      name: 
+        - "{{ ansible_facts['ansible_local']['custom']['packages']['smb_package'] }}"
+        - "{{ ansible_facts['ansible_local']['custom']['packages']['ftp_package'] }}"
+        - "{{ ansible_facts['ansible_local']['custom']['packages']['db_package'] }}"
+        - "{{ ansible_facts['ansible_local']['custom']['packages']['web_package'] }}"
+        - "{{ ansible_facts['ansible_local']['custom']['packages']['firewall_package'] }}"
+  
+  - name: Start & enable services
+    service:
+      state: started
+      enabled: true
+      name: "{{ item }}"  
+    with_items:
+      - "{{ ansible_facts['ansible_local']['custom']['services']['smb_service'] }}"
+      - "{{ ansible_facts['ansible_local']['custom']['services']['ftp_service'] }}"
+      - "{{ ansible_facts['ansible_local']['custom']['services']['db_service'] }}"
+      - "{{ ansible_facts['ansible_local']['custom']['services']['web_service'] }}"
+      - "{{ ansible_facts['ansible_local']['custom']['services']['firewall_service'] }}"
+
+  - name: Open FW for services
+    firewalld:
+      permanent: yes
+      immediate: yes
+      state: enabled
+      service: "{{ item }}"
+    with_items:
+      - samba
+      - samba-client
+      - samba-dc
+      - ftp
+      - mysql
+      - http
+      - https
+  
+  - name: Configure apache's index.html file
+    copy:
+      content: 'Welcome to the Ansible Web Server'
+      dest: /var/www/html/index.html
+      owner: apache
+      group: apache
+      mode: '0777'
