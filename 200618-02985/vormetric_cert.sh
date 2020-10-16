@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script will run monthly as a cron job in order to automatically renew Vormetric Cert and notify account team as detailed in ticket 200618-02985
+# This script will run monthly as a cron job in order to automatically renew Vormetric Cert and notify account team as detailed in ticket #####-#####
 
 LOG="/tmp/vrm_cert.log"
 
@@ -21,7 +21,7 @@ echo ' ' >> $LOG
 /opt/vormetric/DataSecurityExpert/agent/pkcs11/bin/vmutil -a pkcs11 certexpiry >> $LOG
 
 # Email acct team and verify successful delivery
-tail -16 $LOG | mail -s "Monthly Vormetric Cert Renewal" tjx@rackspace.com
+tail -16 $LOG | mail -s "Monthly Vormetric Cert Renewal" <user>@<domain>.com
 sleep 30
 echo ' '
 echo 'Last messages sent to tjx@rackspace.com' >> $LOG
