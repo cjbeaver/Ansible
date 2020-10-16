@@ -7,10 +7,10 @@
     - name: add Ticket No. entry to /etc/sudoers
       lineinfile:
         path: /etc/sudoers
-        line: "## Ticket 200924-02618"
+        line: "## Ticket 12345-67890"
         state: present
-    - name: add pgopal entry to /etc/sudoers
+    - name: add cooluser entry to /etc/sudoers
       lineinfile:
         path: /etc/sudoers
-        line: "pgopal  ALL=(ALL) NOPASSWD: /bin/su - eomadmin"
+        line: "cooluser  ALL=(ALL) NOPASSWD: /bin/su - cooladmin"
         state: present
