@@ -64,4 +64,4 @@
       dest: /var/www/html/index.html
       owner: apache
       group: apache
-      mode: '0777'
+      mode: '0755'
