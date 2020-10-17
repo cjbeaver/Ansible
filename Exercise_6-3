@@ -1,0 +1,24 @@
+## Practice working w/ ansible-vault
+#
+## Can decrypt w/ 3 flags:
+#
+# --ask-vault-pass
+# --vault-id @prompt
+# --vault-password-file=/path/to/pw
+
+
+--- 
+- name: create a user w/ vaulted variables
+  hosts: all
+  vars_files: # (can place here, too) secrets.yaml
+    - secrets.yaml  #(4 spaces)
+  tasks:
+    - name: creating user
+      user:
+        name: "{{ username }}"
+        password: "{{ pwhash }}"
+
+
+
+
+### pw lacking hash, but we'll get to that later.
