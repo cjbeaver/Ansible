@@ -1,0 +1,28 @@
+## Exercise 6-1
+# Copy custom facts to managed nodes.
+
+---
+- name: copy custom facts file
+  hosts: all
+  tasks:
+  - name: create custom facts dir
+    file:
+      state: directory
+      dest: /etc/ansible/facts.d
+  - name: copy custom facts file
+    copy:
+      src: custom.fact
+      dest: /etc/ansible/facts.d
+
+
+## Playing with custom facts:
+# We can call custom facts through bracket notation or dot notation.
+
+---
+- name: copy custom facts file
+  hosts: ansible1
+  tasks:
+  - name: play with custom facts
+    debug:
+      #msg: The package in the custom facts file is {{ ansible_facts['ansible_local']['custom']['software']['package'] }}
+      msg: The package in the custom facts file is {{ ansible_facts.ansible_local.custom.software.package }}
