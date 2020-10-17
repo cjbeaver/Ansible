@@ -1,0 +1,33 @@
+## Practice with group_vars
+## These variables are implicit, so they don't need to be specified in the header.
+
+#$ ll group_vars; cat group_vars/*
+#total 8
+#-rw-rw-r--. 1 ansible ansible 34 Oct 16 21:37 dbservers
+#-rw-rw-r--. 1 ansible ansible 30 Oct 16 21:33 webservers
+#package: mariadb
+#service: mariadb
+#package: httpd
+#service: httpd
+
+#$ cat groups_setup.yaml 
+---
+- name: configure web services
+  hosts: webservers
+  tasks:
+  - name: this is the {{ package }} package
+    debug:
+      msg: "Installing {{ package }} package"
+  - name: this is the {{ service }} service
+    debug:
+      msg: "Starting {{ service }}"
+
+- name: configure db services
+  hosts: dbservers
+  tasks:
+  - name: this is the {{ package }} package
+    debug:
+      msg: "Installing {{ package }} package"
+  - name: this is the {{ service }} service
+    debug:
+      msg: "Starting {{ service }}"
