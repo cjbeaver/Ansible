@@ -1,0 +1,25 @@
+## Practing keys on 'register' vars
+
+--- 
+- name: test register
+  hosts: ansible1
+  tasks:
+  - shell: cat /etc/passwd
+    register: passwd_contents
+  - debug:
+      var: passwd_contents['stdout_lines']
+      
+      
+ ## Very useful w/ conditionals:
+ 
+ --- 
+- name: test register
+  hosts: ansible1
+  vars:
+    user: cory
+  tasks:
+  - shell: grep "{{ user }}" /etc/passwd
+    register: passwd_contents
+  - debug:
+      msg: "{{ user }} exists on {{ ansible_facts['hostname'] }}"
+    when: passwd_contents.rc == 0
