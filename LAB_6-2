@@ -65,3 +65,14 @@
       owner: apache
       group: apache
       mode: '0755'
+
+### Alternatevely, index.html could be set up with:
+
+  - name: Copy index.html file
+    copy:
+      src: index.html
+      dest: "{{ web_root }}"
+      owner: apache
+      group: root
+      mode: 0755
+
