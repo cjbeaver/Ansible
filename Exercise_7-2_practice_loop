@@ -1,0 +1,25 @@
+- name: Open FW for multiple services
+  hosts: ansible1
+  vars:
+    services:
+    - http
+    - https
+    - mysql
+    - ssh
+  tasks:
+## Using a multiple value variable and then looping through the variable is more elegant than looping through a static list.
+  - name: Open FW
+    firewalld:
+      state: enabled
+      permanent: yes
+      immediate: yes
+      service: "{{ item }}"
+    loop: "{{ services }}"
+
+  - name: record verification
+    command: firewall-cmd --list-services
+    register: open_services
+
+  - name: print open ports
+    debug:
+      var: open_services.stdout_lines
