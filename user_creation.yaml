@@ -1,0 +1,52 @@
+Please create SSH access for the below users.
+
+1.Xxxx Xxxxx:xxxx05116
+2.Xxxxx Xxxx:xxxx00119
+3.Xxxx Xx	:xxxx00108
+
+We need Below - 
+SSH access with sudo as "ecom" user passwordless for all mentioned users above until 01/31/2021
+Devices:
+<dev>
+<dev>
+<dev>
+<dev>
+<dev>
+<dev>
+
+---
+- name: Add users to devices as detailed in xxxxxx-00432
+  hosts: all
+  tasks:
+  vars_files: vars/201019-00432_users
+    - name: create users
+      user: 
+        name: "{{ item.name }}"
+        comment: "{{ item.comment }}"
+      loop: "{{ tjx_users }}" 
+
+    - name: set expiration date for users
+      command: "usermod -e 2021-01-31 {{ item.name }}"
+      loop:
+        - xxxx05116
+        - xxxx00119
+        - xxxx00108 
+
+    - name: insert sudoers rules
+      lineinfile:
+        path: /etc/sudoers
+        line: "{{ item.name }} ALL=(ALL) NOPASSWD: /bin/su - ecom"
+      loop: "{{ tjx_users }}"
+    
+    - name: verify user expiration
+      command: "chage -l {{ item.name }}"
+      register: expire_out
+      loop: "{{ tjx_users }}"
+
+    - name: print verification
+      debug:
+        var: expire_out.stdout_lines
+
+    - name: apply new pw
+      shell: "/usr/bin/echo {{ item.pass }} | /usr/bin/passwd --stdin {{ item.name }}"
+      loop: "{{ tjx_users }}"
