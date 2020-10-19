@@ -15,29 +15,30 @@ Devices:
 <dev>
 
 ---
-- name: Add users to devices as detailed in xxxxxx-00432
+- name: Add users to devices as detailed in xxxxx-00432
   hosts: all
   tasks:
-  vars_files: vars/201019-00432_users
+  vars_files: vars/xxxxxx-00432_users
     - name: create users
-      user: 
+      user:
         name: "{{ item.name }}"
         comment: "{{ item.comment }}"
-      loop: "{{ tjx_users }}" 
+      loop: "{{ tjx_users }}"
+      notify: set_pw
 
     - name: set expiration date for users
       command: "usermod -e 2021-01-31 {{ item.name }}"
       loop:
         - xxxx05116
         - xxxx00119
-        - xxxx00108 
+        - xxxx00108
 
     - name: insert sudoers rules
       lineinfile:
         path: /etc/sudoers
         line: "{{ item.name }} ALL=(ALL) NOPASSWD: /bin/su - ecom"
       loop: "{{ tjx_users }}"
-    
+
     - name: verify user expiration
       command: "chage -l {{ item.name }}"
       register: expire_out
@@ -46,7 +47,8 @@ Devices:
     - name: print verification
       debug:
         var: expire_out.stdout_lines
-
-    - name: apply new pw
+  
+  handlers:
+    - name: set_pw
       shell: "/usr/bin/echo {{ item.pass }} | /usr/bin/passwd --stdin {{ item.name }}"
       loop: "{{ tjx_users }}"
