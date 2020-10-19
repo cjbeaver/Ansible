@@ -1,0 +1,20 @@
+---
+- name: manage packages and services using a loop from a list
+  hosts: ansible1
+  vars_files:
+  - vars/packages
+  - vars/services
+  tasks:
+  - name: install packages
+    yum:
+      name: "{{ item.name }}"
+      state: "{{ item.state }}"
+    loop: "{{ packages }}"
+
+  - name: start and enable services when available memory more than 1 GB
+    service:
+      name: "{{ item.name }}"
+      state: "{{ item.state }}"
+      enabled: "{{ item.enabled }}"
+    loop: "{{ services }}"
+    when: ansible_facts.memory_mb.nocache.free > 1000
