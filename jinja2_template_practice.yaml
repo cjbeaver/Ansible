@@ -8,11 +8,15 @@
 - name: Create an '/etc/hosts' file using a jinja2 template
   hosts: all
   tasks:
-  - name: Create file
+  - name: Create dynamic hosts file
     template:
       src: templates/hosts.j2
       dest: /etc/hosts
       backup: true
+  - name: ensure localhost entry exists
+    lineinfile:
+      path: /etc/hosts
+      line: '127.0.0.1 localhost localhost.localdomain'
 
 
 
