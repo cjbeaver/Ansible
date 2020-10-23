@@ -1,0 +1,70 @@
+## MANAGE A VSFTPD SERVICE
+#
+## Write a playbook that uses at least two plays to install a vsftpd service, configure the vsftpd service using templates, and configure permissions as well as SELinux. Apply the following requirements:
+#
+# • Install, start, and enable the vsftpd service. Also, open a port in the firewall to make it accessible.
+# • Use the /etc/vsftpd/vsftpd.conf file to generate a template. In this template, you should use the following variables to configure specific settings. Replace these settings with the variables and leave all else unmodified:
+# • Anonymous_enable: yes
+# • Local_enable: yes
+# • Write_enable: yes
+# • Anon_upload_enable: yes
+# • Set permissions on the /var/ftp/pub directory so that members of 'sftponly' group and read and write files.
+# • Configure the ftpd_anon_write Boolean to allow anonymous user writes.
+# • Set the public_content_rw_t SELinux context type to the /var/ftp/pub directory.
+# • If any additional tasks are required to get this done, take care of them.
+--- 
+- name: Configure vsftpd
+  hosts: all
+  vars_files: vars/template_vars
+  tasks:
+  - name: Install vsftpd
+    yum:
+      name: vsftpd
+      state: installed
+
+  - name: Start and enable vsftpd service
+    service:
+      name: vsftpd
+      state: started
+      enabled: yes
+
+  - name: Open FW port 
+    firewalld:
+      service: ftp
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  - name: Configure Permissions for /var/ftp/pub
+    file: 
+      path: /var/ftp/pub
+      owner: root
+      group: sftponly
+      mode: 0664
+
+  - name: Configure SELinux boolean
+    seboolean:
+      name: ftpd_anon_write
+      state: yes
+      persistent: yes
+      
+  - name: Configure SELinux context
+    sefcontext:
+      target: '/var/ftp/pub(/.*)?'
+      setype: public_content_rw_t
+      state: present
+    notify: restorecon_vsftpd  
+  
+  - name: Configure /etc/vsftpd/vsftpd.conf
+    template:
+      src: templates/vsftpd.j2
+      dest: /etc/vsftpd/vsftpd.conf
+    notify: restart_vsftpd 
+  
+  handlers: 
+  - name: restorecon_vsftpd
+    command: rectorecon -Rv /var/ftp/pub
+  - name: restart_vsftpd
+    service:
+      name: vsftpd
+      state: restarted
