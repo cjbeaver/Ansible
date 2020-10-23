@@ -23,8 +23,10 @@ Devices:
       user:
         name: "{{ item.name }}"
         comment: "{{ item.comment }}"
+        update_password: on_create
+        password: "{{ {{ item.password }} | | password_hash('sha512') }}"
       loop: "{{ tjx_users }}"
-      notify: set_pw
+#      notify: set_pw
 
     - name: set expiration date for users
       command: "usermod -e 2021-01-31 {{ item.name }}"
@@ -48,11 +50,12 @@ Devices:
       debug:
         var: expire_out.stdout_lines
   
-  handlers:
-    - name: set_pw
-      # one method: shell: "/usr/bin/echo {{ item.pass }} | /usr/bin/passwd --stdin {{ item.name }}"
-      ## another method
-      user:
-        name: "{{ item.name }}"
-        password: "{{ {{ item.password }} | | password_hash('sha512') }}"
-      loop: "{{ tjx_users }}"
+#  handlers:
+#- name: set_pw
+#      # one method: shell: "/usr/bin/echo {{ item.pass }} | /usr/bin/passwd --stdin {{ item.name }}"
+#      ## another method
+#      user:
+#        name: "{{ item.name }}"
+#        update_password: on_create
+#        password: "{{ {{ item.password }} | | password_hash('sha512') }}"
+#      loop: "{{ tjx_users }}"
