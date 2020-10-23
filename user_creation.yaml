@@ -50,5 +50,9 @@ Devices:
   
   handlers:
     - name: set_pw
-      shell: "/usr/bin/echo {{ item.pass }} | /usr/bin/passwd --stdin {{ item.name }}"
+      # one method: shell: "/usr/bin/echo {{ item.pass }} | /usr/bin/passwd --stdin {{ item.name }}"
+      ## another method
+      user:
+        name: "{{ item.name }}"
+        password: "{{ {{ item.password }} | | password_hash('sha512') }}"
       loop: "{{ tjx_users }}"
