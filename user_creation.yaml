@@ -17,16 +17,18 @@ Devices:
 ---
 - name: Add users to devices as detailed in xxxxx-00432
   hosts: all
+  vars_files: 
+    vars/xxxxxx-00432_users
+    vars/secret.yaml          # NOTE: this key:value pair is used for password argument and is encrypted via ansible-vault
   tasks:
-  vars_files: vars/xxxxxx-00432_users
-    - name: create users
-      user:
-        name: "{{ item.name }}"
-        comment: "{{ item.comment }}"
-        update_password: on_create
-        password: "{{ {{ item.password }} | | password_hash('sha512') }}"
-      loop: "{{ tjx_users }}"
-#      notify: set_pw
+  - name: create users
+    user:
+      name: "{{ item.name }}"
+      comment: "{{ item.comment }}"
+      update_password: on_create
+      password: "{{ mypassword | password_hash('sha512') }}"
+    loop: "{{ tjx_users }}"
+
 
     - name: set expiration date for users
       command: "usermod -e 2021-01-31 {{ item.name }}"
@@ -50,12 +52,3 @@ Devices:
       debug:
         var: expire_out.stdout_lines
   
-#  handlers:
-#- name: set_pw
-#      # one method: shell: "/usr/bin/echo {{ item.pass }} | /usr/bin/passwd --stdin {{ item.name }}"
-#      ## another method
-#      user:
-#        name: "{{ item.name }}"
-#        update_password: on_create
-#        password: "{{ {{ item.password }} | | password_hash('sha512') }}"
-#      loop: "{{ tjx_users }}"
