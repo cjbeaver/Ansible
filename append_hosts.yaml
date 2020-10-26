@@ -1,0 +1,47 @@
+--- 
+- name: add new entries to /etc/hosts
+  hosts: all
+  become: true
+  gather_facts: no
+  vars_files: vars/hosts_append
+  tasks:
+  - name: Back up current '/etc/hosts'
+    copy:
+      remote_src: yes
+      src: /etc/hosts
+      dest: "{{ backup_dir }}"
+    notify: push_entries
+
+  - command: cat /etc/hosts
+    register: hosts_capture
+    tags: debug
+
+  - debug:
+      var: hosts_capture
+    tags: debug
+
+  - name: add db tags
+    lineinfile:
+      path: /etc/hosts
+      line: '#DB'
+
+  handlers:
+  - name: push_entries
+    lineinfile:
+      path: /etc/hosts
+      insertafter: '#DB'
+      line: "{{ item.entry }}"
+    loop: "{{ new_entries }}"
+
+- name: Verify new entries successful
+  hosts: all
+  become: true
+  gather_facts: no
+  tasks:
+  - command: cat /etc/hosts
+    register: hosts_out
+
+  - name: check for entries
+    debug:
+      msg: New entries successfully added
+    when: hosts_out.stdout.find('192.168.105.225    <HOSTNAME>    <FQDN>') != -1 and hosts_out.stdout.find('192.168.105.224    <HOSTNAME>    <FQDN>') != -1
