@@ -1,0 +1,27 @@
+#LAB 9-1
+#Create a playbook that starts the Nginx web server on ansible1, according to the following requirements:
+#• A requirements file must be used to install the Nginx web server. Do NOT use the latest version of the Galaxy role, but instead use the version before that.
+#• The same requirements file must also be used to install the latest version of postgresql.
+#• The playbook needs to ensure that neither httpd nor mysql is currently installed.
+
+---
+- name: Nginx web server deployment
+  hosts: all
+  roles:
+  - role: geerlingguy.nginx
+  - role: geerlingguy.postgresql
+  pre_tasks:
+  - name: Ensure neither httpd nor mysql is currently active.
+    ignore_errors: yes
+    service: 
+      name: "{{ item }}"
+      state: stopped
+    loop:
+      - httpd
+      - mariadb
+  - name: Ensure neither httpd nor mysql is currently installed.
+    yum:
+      state: removed
+      name:
+        - httpd
+        - mariadb
