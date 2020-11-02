@@ -1,0 +1,40 @@
+##Write a playbook to configure all managed servers according to the following requirements:
+#
+#• All hosts can access the repository that was created in Lab 12-1.
+#
+#• Have the same playbook install the nginx package.
+#
+#• Do NOT start the service. Use the appropriate module to gather information about the installed nginx package, and let the playbook 
+#  print a message stating the name of the nginx package as well as the version.
+---
+- name:  Download package from control repo
+  hosts: all
+  tasks:
+  - name: Make sure control is resolvable
+    lineinfile:
+      path: /etc/hosts
+      line: 192.168.10.10 control.example.com control
+  - name: Configure repo
+    yum_repository:
+      name: ControlRepo
+      description: ControlRepo
+      baseurl: http://control.example.com
+      gpgcheck: no
+  - name: remove nginx
+    yum:
+      name: nginx
+      state: removed
+  - name: Download nginx from new control repo
+    yum:
+      name: nginx
+      disablerepo: all
+      enablerepo: ControlRepo
+  - name: Gather the rpm package facts
+    package_facts:
+      manager: auto
+    tags: debug
+  - name: Print the rpm package facts
+    debug:
+      #msg: Nginx package name is "{{ ansible_facts.packages.nginx.name }}" with version "{{  ansible_facts.packages.nginx.version }}".
+      var: ansible_facts['packages']['nginx']
+    tags: debug:
