@@ -1,0 +1,76 @@
+##Configure the control.example.com host as a repository server, according to the following requirements:
+#
+#• Create a directory with the name /repo, and in that directory copy all packages that have a name starting with nginx.
+#
+#• Generate the metadata that makes this directory a repository.
+#
+#• Configure the Apache web server to provide access to the repository server. You just have to make sure that the DocumentRoot in Apache is going to be set to the /repo directory.
+---
+- name: Configure control.example.com as a repository server
+  hosts: localhost
+  vars_files: vars/repo_server
+  tasks:
+  - name: Configure dir & downloads
+    file:
+      state: directory
+      path: "{{ target_dir }}"
+  - name: download_pkgs
+    yum:
+      name: nginx*
+      download_only: yes
+      download_dir: "{{ target_dir }}"
+
+- name: Transform {{ target_dir }} into repo -- dl creatrepo
+  vars_files: vars/repo_server
+  hosts: localhost
+  tasks:  
+  - name: install createrepo  
+    yum:
+      name: createrepo_c
+      state: installed
+  - name: generate metadata
+    command: createrepo "{{ target_dir }}"
+  - name: Configure selinux  ## May not be necessary?  Worked without.
+    sefcontext:
+      target: '/repo(/.*)?'
+      setype: httpd_sys_rw_content_t
+      state: present
+  - name: restorecon
+    command: restorecon -Rv /repo
+    changed_when: false
+  tags: dir_setup
+
+- name: Set up apache
+  hosts: localhost
+  vars_files: vars/repo_server
+  tasks:
+  - name: install apache
+    yum:
+      name: httpd
+      state: installed
+  - name: modify doc root
+    lineinfile:
+      path: /etc/httpd/conf/httpd.conf
+      regexp: 'DocumentRoot "/var/www/html"'
+      line: 'DocumentRoot "/repo"'
+  - name: add Directory block
+    blockinfile: 
+      path: /etc/httpd/conf/httpd.conf
+      block: |
+        <Directory "/repo">
+            AllowOverride None
+            # Allow open access:
+            Require all granted
+        </Directory>
+  - name: open http port FW
+    firewalld:
+      service: http
+      state: enabled
+      immediate: yes
+      permanent: yes
+  - name: start_httpd
+    service:
+      name: httpd
+      state: started
+      enabled: true
+  tags: apache_setup
