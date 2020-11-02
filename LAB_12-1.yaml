@@ -14,6 +14,7 @@
     file:
       state: directory
       path: "{{ target_dir }}"
+
   - name: download_pkgs
     yum:
       name: nginx*
@@ -30,15 +31,13 @@
       state: installed
   - name: generate metadata
     command: createrepo "{{ target_dir }}"
-  - name: Configure selinux  ## May not be necessary?  Worked without.
+  - name: Configure selinux setting
     sefcontext:
       target: '/repo(/.*)?'
       setype: httpd_sys_rw_content_t
       state: present
   - name: restorecon
     command: restorecon -Rv /repo
-    changed_when: false
-  tags: dir_setup
 
 - name: Set up apache
   hosts: localhost
@@ -68,9 +67,8 @@
       state: enabled
       immediate: yes
       permanent: yes
-  - name: start_httpd
+  - name: restart_httpd
     service:
       name: httpd
       state: started
       enabled: true
-  tags: apache_setup
